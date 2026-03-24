@@ -189,11 +189,7 @@ mklink /D "C:\xampp\htdocs\sakms" "C:\Users\ASUS\Documents\Internet and Web Deve
 
 ### Step 2: Login with Demo Credentials
 
-**Demo Supervisor Account:**
-```
-Email:    supervisor@sakms.com
-Password: supervisor123
-```
+
 
 1. **Enter credentials** in the login form
 2. **Click"Sign In"**
