@@ -11,22 +11,22 @@ require_once 'kpi_calculator.php';
  */
 function getAllEmployeesSummary($conn, $period_id = 4) {
     $query = "
-        SELECT 
-            e.employee_id,
-            e.name,
-            e.staff_id,
-            e.department,
-            e.role,
-            COUNT(DISTINCT ks.kpi_code) as kpi_count,
+        SELECT
+            s.staff_id AS employee_id,
+            s.full_name AS name,
+            s.staff_code AS staff_id,
+            s.role AS department,
+            s.role,
+            s.status,
+            COUNT(DISTINCT ks.kpi_item_id) as kpi_count,
             AVG(ks.score) as avg_score
-        FROM employees e
-        LEFT JOIN kpi_scores ks ON e.employee_id = ks.employee_id 
-            AND YEAR(ks.evaluation_date) = (SELECT year FROM evaluation_periods WHERE period_id = ?)
-        WHERE e.status = 'Active'
-        GROUP BY e.employee_id
-        ORDER BY avg_score DESC, e.name ASC
+        FROM staff s
+        LEFT JOIN kpi_score ks ON s.staff_id = ks.staff_id AND ks.period_id = ?
+        WHERE s.status = 'Active'
+        GROUP BY s.staff_id
+        ORDER BY avg_score DESC, s.full_name ASC
     ";
-    
+
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $period_id);
     $stmt->execute();
@@ -38,15 +38,20 @@ function getAllEmployeesSummary($conn, $period_id = 4) {
  */
 function getEmployeeProfile($conn, $employee_id) {
     $query = "
-        SELECT 
-            e.*,
-            COUNT(DISTINCT ks.kpi_code) as total_kpis
-        FROM employees e
-        LEFT JOIN kpi_scores ks ON e.employee_id = ks.employee_id
-        WHERE e.employee_id = ?
-        GROUP BY e.employee_id
+        SELECT
+            s.staff_id AS employee_id,
+            s.staff_code AS staff_id,
+            s.full_name AS name,
+            s.role AS department,
+            s.role,
+            s.status,
+            COUNT(DISTINCT ks.kpi_item_id) as total_kpis
+        FROM staff s
+        LEFT JOIN kpi_score ks ON s.staff_id = ks.staff_id
+        WHERE s.staff_id = ?
+        GROUP BY s.staff_id
     ";
-    
+
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $employee_id);
     $stmt->execute();
@@ -58,14 +63,14 @@ function getEmployeeProfile($conn, $employee_id) {
  */
 function getSupervisorComments($conn, $employee_id, $period_id) {
     $query = "
-        SELECT 
-            sc.*,
+        SELECT
+            sf.*,
             ep.year
-        FROM supervisor_comments sc
-        JOIN evaluation_periods ep ON sc.period_id = ep.period_id
-        WHERE sc.employee_id = ? AND sc.period_id = ?
+        FROM supervisor_feedback sf
+        JOIN evaluation_period ep ON sf.period_id = ep.period_id
+        WHERE sf.staff_id = ? AND sf.period_id = ?
     ";
-    
+
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ii", $employee_id, $period_id);
     $stmt->execute();
@@ -112,22 +117,21 @@ function getAtRiskEmployees($conn, $period_id = 4) {
 }
 
 /**
- * Get average KPI by department
+ * Get average KPI by role (grouped as department)
  */
 function getAverageByDepartment($conn, $period_id = 4) {
     $query = "
-        SELECT 
-            e.department,
-            COUNT(DISTINCT e.employee_id) as emp_count,
+        SELECT
+            s.role AS department,
+            COUNT(DISTINCT s.staff_id) as emp_count,
             AVG(ks.score) as avg_score
-        FROM employees e
-        LEFT JOIN kpi_scores ks ON e.employee_id = ks.employee_id
-            AND YEAR(ks.evaluation_date) = (SELECT year FROM evaluation_periods WHERE period_id = ?)
-        WHERE e.status = 'Active'
-        GROUP BY e.department
+        FROM staff s
+        LEFT JOIN kpi_score ks ON s.staff_id = ks.staff_id AND ks.period_id = ?
+        WHERE s.status = 'Active'
+        GROUP BY s.role
         ORDER BY avg_score DESC
     ";
-    
+
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $period_id);
     $stmt->execute();
@@ -164,20 +168,20 @@ function getPerformanceDistribution($conn, $period_id = 4) {
  */
 function getKPIGroupScores($conn, $employee_id, $period_id = 4) {
     $query = "
-        SELECT 
-            km.kpi_group,
+        SELECT
+            kg.group_name AS kpi_group,
             AVG(ks.score) as avg_score,
             COUNT(ks.score) as count,
             MIN(ks.score) as min_score,
             MAX(ks.score) as max_score
-        FROM kpi_scores ks
-        JOIN kpi_master km ON ks.kpi_code = km.kpi_code
-        JOIN evaluation_periods ep ON YEAR(ks.evaluation_date) = ep.year
-        WHERE ks.employee_id = ? AND ep.period_id = ?
-        GROUP BY km.kpi_group
+        FROM kpi_score ks
+        JOIN kpi_item ki ON ks.kpi_item_id = ki.kpi_item_id
+        JOIN kpi_group kg ON ki.kpi_group_id = kg.kpi_group_id
+        WHERE ks.staff_id = ? AND ks.period_id = ?
+        GROUP BY kg.kpi_group_id, kg.group_name
         ORDER BY avg_score DESC
     ";
-    
+
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ii", $employee_id, $period_id);
     $stmt->execute();
@@ -185,21 +189,40 @@ function getKPIGroupScores($conn, $employee_id, $period_id = 4) {
 }
 
 /**
- * Predict performance risk (trend analysis)
+ * Predict performance risk (compares current period to previous period)
  */
-function predictPerformanceRisk($conn, $employee_id) {
-    $trend = KPICalculator::getKPITrend($conn, $employee_id);
+function predictPerformanceRisk($conn, $employee_id, $period_id = 4) {
+    // Get all periods ordered by year
+    $all_periods = $conn->query("SELECT period_id, year FROM evaluation_period ORDER BY year ASC")->fetch_all(MYSQLI_ASSOC);
     
-    if (count($trend) < 2) {
-        return ['risk_level' => 'Unknown', 'trend' => 'Insufficient Data'];
+    // If less than 2 periods, can't calculate risk
+    if (count($all_periods) < 2) {
+        return ['risk_level' => 'Low', 'trend' => 'Insufficient Data', 'change' => 0];
     }
     
-    $scores = array_values($trend);
-    $latest_score = $scores[count($scores) - 1]['overall'];
-    $previous_score = $scores[count($scores) - 2]['overall'];
+    // Find current and previous period indices
+    $curr_idx = -1;
+    foreach ($all_periods as $i => $p) {
+        if ((int)$p['period_id'] === (int)$period_id) {
+            $curr_idx = $i;
+            break;
+        }
+    }
     
-    $change = $latest_score - $previous_score;
+    // If no previous period, can't calculate risk
+    if ($curr_idx <= 0) {
+        return ['risk_level' => 'Low', 'trend' => 'Insufficient Data', 'change' => 0];
+    }
     
+    // Calculate KPI for current and previous periods only
+    $curr_kpi = KPICalculator::calculateKPI($conn, $employee_id, (int)$all_periods[$curr_idx]['period_id']);
+    $prev_kpi = KPICalculator::calculateKPI($conn, $employee_id, (int)$all_periods[$curr_idx - 1]['period_id']);
+    
+    $latest_score = $curr_kpi['overall'];
+    $previous_score = $prev_kpi['overall'];
+    $change = round($latest_score - $previous_score, 2);
+    
+    // Risk assessment based on current score and trend
     if ($latest_score < 2.5) {
         return ['risk_level' => 'Critical', 'trend' => 'Declining', 'change' => $change];
     } elseif ($latest_score < 3.0 && $change < -0.5) {
@@ -219,15 +242,15 @@ function predictPerformanceRisk($conn, $employee_id) {
 function getTrainingRecommendations($conn, $employee_id, $period_id) {
     $query = "
         SELECT training_recommendations
-        FROM supervisor_comments
-        WHERE employee_id = ? AND period_id = ?
+        FROM supervisor_feedback
+        WHERE staff_id = ? AND period_id = ?
     ";
-    
+
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ii", $employee_id, $period_id);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
-    
+
     return $result['training_recommendations'] ?? 'No recommendations available';
 }
 
