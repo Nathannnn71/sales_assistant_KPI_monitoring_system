@@ -311,7 +311,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_evaluation']))
         $ps->execute();
 
         $success_msg = "Evaluation saved successfully! Final Score: <strong>" . number_format($fs, 4) . "</strong> – $grade_label"
-            . "<br><span style='color:#a78bfa;'>✨ AI Training Recommendation:</span> " . htmlspecialchars($training_rec);
+            . "<br><span style='color:#a78bfa;'> AI Training Recommendation:</span> " . htmlspecialchars($training_rec);
 
         // ── 6. Fire at-risk notification if score < 3.0 ──
         if ($fs < 3.0) {
@@ -426,13 +426,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
 
 <?php if ($success_msg): ?>
 <div class="col-full" style="background: rgba(34,197,94,0.12); border:1px solid #22c55e; border-radius:10px; padding:14px 18px; color:#22c55e; font-size:13px;">
-  ✅ <?php echo $success_msg; ?>
+   <?php echo $success_msg; ?>
 </div>
 <?php endif; ?>
 
 <?php if ($error_msg): ?>
 <div class="col-full" style="background: rgba(239,68,68,0.12); border:1px solid #ef4444; border-radius:10px; padding:14px 18px; color:#ef4444; font-size:13px;">
-  ❌ <?php echo safe($error_msg); ?>
+   <?php echo safe($error_msg); ?>
 </div>
 <?php endif; ?>
 
@@ -456,11 +456,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
   <div style="display:flex; gap:10px; margin-top:16px;">
     <button type="button" id="btn-existing"
       style="flex:1; padding:10px; border-radius:8px; border:2px solid var(--accent); background:var(--accent); color:#fff; font-size:12px; font-weight:600; cursor:pointer; transition:.2s;">
-      📋 Evaluate Existing Staff
+       Evaluate Existing Staff
     </button>
     <button type="button" id="btn-new"
       style="flex:1; padding:10px; border-radius:8px; border:2px solid var(--border); background:transparent; color:var(--text-secondary); font-size:12px; font-weight:600; cursor:pointer; transition:.2s;">
-      ➕ Register New Staff & Evaluate
+       Register New Staff & Evaluate
     </button>
   </div>
 
@@ -474,7 +474,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
         <option value="">— Choose staff —</option>
         <?php foreach ($all_staff as $s): ?>
           <option value="<?php echo $s['staff_id']; ?>">
-            <?php echo safe($s['staff_code'] . ' – ' . $s['full_name'] . ' (' . $s['role'] . ')'); ?>
+            <?php echo safe($s['staff_code'] . ' - ' . $s['full_name'] . ' (' . $s['role'] . ')'); ?>
           </option>
         <?php endforeach; ?>
       </select>
@@ -511,16 +511,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
       <input type="date" id="sel-date"
         style="width:100%; padding:10px 12px; background:var(--bg-input,#141c2b); border:1px solid var(--border); border-radius:8px; color:var(--text-primary); font-size:13px; cursor:pointer; color-scheme:dark;"/>
       <div id="date-year-hint" style="font-size:11px; color:var(--text-muted); margin-top:5px; display:none;">
-        📅 Evaluation period: <strong id="date-year-label" style="color:var(--accent);"></strong>
+         Evaluation period: <strong id="date-year-label" style="color:var(--accent);"></strong>
       </div>
       <div id="date-year-warn" style="font-size:11px; color:#ef4444; margin-top:5px; display:none;">
-        ⚠️ No evaluation period found for the selected year. A new period will be created automatically.
+         No evaluation period found for the selected year. A new period will be created automatically.
       </div>
     </div>
   </div>
 
   <div id="load-hint" style="margin-top:12px; font-size:11px; color:var(--text-muted); display:none;">
-    ℹ️ Existing scores for this period have been loaded into the form below.
+     Existing scores for this period have been loaded into the form below.
   </div>
 </div>
 
@@ -594,7 +594,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
             </td>
             <td style="padding:10px 6px; text-align:center;">
               <span id="ws-<?php echo $item['id']; ?>" style="font-size:12px; font-weight:700; color:#3b82f6;">
-                –
+                -
               </span>
             </td>
           </tr>
@@ -610,7 +610,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
     <!-- ══ SECTION 2 ══════════════════════ -->
     <div style="background:rgba(6,182,212,0.06); border:1px solid rgba(6,182,212,0.2); border-radius:10px; padding:16px; margin-bottom:20px;">
       <div style="font-size:13px; font-weight:700; color:#06b6d4; margin-bottom:14px;">
-        SECTION 2 – KPI Achievement
+        SECTION 2 - KPI Achievement
         <span style="font-size:11px; font-weight:400; color:var(--text-muted); margin-left:8px;">75% of total score</span>
       </div>
 
@@ -726,7 +726,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
         <label style="font-size:11px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">
           Training Recommendation
           <span style="background:rgba(139,92,246,0.18); color:#a78bfa; font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; border:1px solid rgba(139,92,246,0.4); margin-left:6px;">
-            ✨ AI Generated
+             AI Generated
           </span>
         </label>
         <div style="position:relative;">
@@ -745,7 +745,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
     <!-- ══ SUBMIT ══════════════════════ -->
     <button type="button" id="submit-btn"
       style="width:100%; padding:14px; background:linear-gradient(135deg,#8b5cf6,#6d28d9); border:none; border-radius:10px; color:#fff; font-size:14px; font-weight:700; cursor:pointer; transition:.2s; letter-spacing:.3px;">
-      💾 Save Evaluation to Database
+       Save Evaluation to Database
     </button>
   </form>
 </div>
@@ -1158,7 +1158,7 @@ function showScoreError(count) {
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.parentNode.insertBefore(errBox, submitBtn);
   }
-  errBox.innerHTML = `❌ <strong>Please score all ${count} remaining item(s) before submitting.</strong><br>Rows missing a score are highlighted in red below.`;
+  errBox.innerHTML = ` <strong>Please score all ${count} remaining item(s) before submitting.</strong><br>Rows missing a score are highlighted in red below.`;
   // Shake animation to show something happened without scrolling away
   errBox.animate([
     { transform:'translateX(0)' }, { transform:'translateX(-6px)' },
@@ -1271,7 +1271,7 @@ function applyWeightChanges() {
 
   const errEl = document.getElementById('wm-error');
   if (Math.abs(total - 100) >= 0.01) {
-    errEl.textContent = `❌ Weights total ${total.toFixed(2)}% but must equal exactly 100%. Please adjust your values.`;
+    errEl.textContent = ` Weights total ${total.toFixed(2)}% but must equal exactly 100%. Please adjust your values.`;
     errEl.style.display = 'block';
     return;
   }
