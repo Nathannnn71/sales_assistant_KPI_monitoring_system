@@ -2,13 +2,8 @@
 /**
  * SAKMS - Performance Evaluation Page
  * Handles both new staff registration + evaluation, and existing staff re-evaluation.
- * Saves data to: staff, kpi_score, supervisor_feedback, performance_summary
  */
-
-// ─────────────────────────────────────────────────────────
 //  KPI item definitions (mirrors kpi_item table in DB)
-//  Each entry: [ kpi_item_id, kpi_group_id, kpi_code, description ]
-// ─────────────────────────────────────────────────────────
 $KPI_ITEMS = [
     // Section 1 – Competency (group 1)
     'S1' => [
@@ -49,7 +44,7 @@ $KPI_ITEMS = [
     ],
 ];
 
-// Section 2 group weights (matches kpi_group.weight_percentage / 100)
+// Section 2 group weights 
 $GROUP_WEIGHTS = [
     'Daily Sales Operations'                  => 0.15,
     'Customer Service Quality'                => 0.15,
@@ -59,7 +54,7 @@ $GROUP_WEIGHTS = [
     'Store Operations Support'                => 0.15,
 ];
 
-// Section 1 item weights — keyed by descriptive name (matches kpi_item.desc)
+// Section 1 item weights
 $S1_WEIGHTS = [
     'Initiative'                   => 0.05,
     'Professional Conduct'         => 0.10,
@@ -72,13 +67,14 @@ $S1_DESC_TO_ID = [
     'Professional Conduct'         => 20,
     'Reliability & Accountability' => 21,
 ];
-// Reverse map: item_id → desc name
+
+// Reverse mapping of item_id into desc name
 $S1_ID_TO_DESC = array_flip($S1_DESC_TO_ID);
 
-// ─────────────────────────────────────────────────────────
+
 //  Load latest saved weights from weight_config table
 //  (overrides hardcoded defaults above if a saved config exists)
-// ─────────────────────────────────────────────────────────
+
 $tbl_check = $conn->query("SHOW TABLES LIKE 'weight_config'");
 $wc = ($tbl_check && $tbl_check->num_rows > 0)
     ? $conn->query("SELECT s1_weights_json, s2_weights_json FROM weight_config ORDER BY config_id DESC LIMIT 1")
@@ -164,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_evaluation']))
         }
     }
 
-    // ── 1. Resolve staff_id ──────────────────────────────
+    // 1. Resolve staff_id 
     $staff_id = 0;
 
     if ($mode === 'new') {
@@ -202,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_evaluation']))
         $error_msg = 'Please select an evaluation date.';
     }
 
-    // ── 3. Save kpi_score rows ───────────────────────────
+    //  3. Save kpi_score rows
     if ($error_msg === '') {
         $all_item_ids = [];
         foreach ($KPI_ITEMS as $items) {
@@ -220,7 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_evaluation']))
 
         foreach ($all_item_ids as $item_id) {
             $score = (int)($_POST['score_' . $item_id] ?? 3);
-            $score = max(1, min(5, $score)); // clamp 1–5
+            $score = max(1, min(5, $score)); 
             $upsert->bind_param("iiiisi", $staff_id, $item_id, $period_id, $score, $date_recorded, $supervisor_profile_id);
             $upsert->execute();
         }
@@ -340,10 +336,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_evaluation']))
     }
 }
 
-// ─────────────────────────────────────────────────────────
 //  Prefill existing scores when user picks a staff + period
 //  (via AJAX GET request: ?action=load_scores&staff_id=X&period_id=Y)
-// ─────────────────────────────────────────────────────────
 if (isset($_GET['action']) && $_GET['action'] === 'load_scores') {
     header('Content-Type: application/json');
     $sid = (int)($_GET['staff_id']  ?? 0);
@@ -374,10 +368,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'load_scores') {
     exit();
 }
 
-// ─────────────────────────────────────────────────────────
+
 //  Save weight config
 //  (via AJAX POST request: ?action=save_weights)
-// ─────────────────────────────────────────────────────────
 if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
     header('Content-Type: application/json');
 
@@ -436,9 +429,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
 </div>
 <?php endif; ?>
 
-<!-- ══════════════════════════════════════
-     STEP 1 — Mode & Period Selector
-══════════════════════════════════════ -->
+
+   <!--  STEP 1 — Mode & Period Selector-->
 <div class="card col-full">
   <div class="card-title">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -448,7 +440,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
     Performance Evaluation Setup
     <button type="button" id="change-weight-btn"
       style="margin-left:auto; padding:6px 14px; background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--text-secondary); font-size:11px; font-weight:600; cursor:pointer; transition:.2s;">
-      ⚖ Change Weight
+       Change Weight
     </button>
   </div>
 
@@ -524,9 +516,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     EVALUATION FORM
-══════════════════════════════════════ -->
+<!--EVALUATION FORM -->
 <div class="card col-full" id="eval-form-card">
   <div class="card-title">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -558,7 +548,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
       <?php endforeach; ?>
     </div>
 
-    <!-- ══ SECTION 1 ══════════════════════ -->
+    <!-- SECTION 1 -->
     <div style="background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.2); border-radius:10px; padding:16px; margin-bottom:20px;">
       <div style="font-size:13px; font-weight:700; color:#3b82f6; margin-bottom:14px;">
         SECTION 1 – Core Competencies
@@ -607,7 +597,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
       </table>
     </div>
 
-    <!-- ══ SECTION 2 ══════════════════════ -->
+    <!-- SECTION 2-->
     <div style="background:rgba(6,182,212,0.06); border:1px solid rgba(6,182,212,0.2); border-radius:10px; padding:16px; margin-bottom:20px;">
       <div style="font-size:13px; font-weight:700; color:#06b6d4; margin-bottom:14px;">
         SECTION 2 - KPI Achievement
@@ -700,7 +690,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
       </table>
     </div>
 
-    <!-- ══ FINAL SCORE ════════════════════ -->
+    <!-- FINAL SCORE -->
     <div style="background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.25); border-radius:10px; padding:16px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
       <div>
         <div style="font-size:13px; font-weight:700; color:var(--text-primary);">FINAL PERFORMANCE SCORE</div>
@@ -712,7 +702,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
       </div>
     </div>
 
-    <!-- ══ COMMENTS & DEVELOPMENT ════════ -->
+    <!-- COMMENTS & DEVELOPMENT -->
     <div style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:10px; padding:16px; margin-bottom:20px;">
       <div style="font-size:13px; font-weight:700; color:#f59e0b; margin-bottom:14px;">
         Comments &amp; Development Plan
@@ -742,7 +732,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
       <input type="hidden" name="training_recommendations" id="t-training" value=""/>
     </div>
 
-    <!-- ══ SUBMIT ══════════════════════ -->
+    <!-- SUBMIT -->
     <button type="button" id="submit-btn"
       style="width:100%; padding:14px; background:linear-gradient(135deg,#8b5cf6,#6d28d9); border:none; border-radius:10px; color:#fff; font-size:14px; font-weight:700; cursor:pointer; transition:.2s; letter-spacing:.3px;">
        Save Evaluation to Database
@@ -750,9 +740,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
   </form>
 </div>
 
-<!-- ══════════════════════════════════════
-     CHANGE WEIGHT MODAL
-══════════════════════════════════════ -->
+<!--CHANGE WEIGHT MODAL-->
 <div id="weight-modal-overlay"
   style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
 </div>
@@ -849,9 +837,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'save_weights') {
 </style>
 
 <script>
-// ─────────────────────────────────────────────────────────
+
 //  State
-// ─────────────────────────────────────────────────────────
 let currentMode     = 'existing';
 let currentStaffId  = '';
 let currentPeriodId = '';
@@ -887,9 +874,8 @@ const s2Groups = <?php
 const ratingLabels = ['Very Poor','Very Poor','Poor','Satisfactory','Good','Excellent'];
 const ratingColors = ['','#7f1d1d','#ef4444','#f59e0b','#3b82f6','#22c55e'];
 
-// ─────────────────────────────────────────────────────────
+
 //  Mode toggle
-// ─────────────────────────────────────────────────────────
 function setMode(mode) {
   currentMode = mode;
   document.getElementById('f-mode').value = mode;
@@ -923,9 +909,8 @@ function setMode(mode) {
   }
 }
 
-// ─────────────────────────────────────────────────────────
+
 //  Staff / Period change handlers
-// ─────────────────────────────────────────────────────────
 function onStaffChange() {
   currentStaffId = document.getElementById('sel-staff').value;
   const sel      = document.getElementById('sel-staff');
@@ -997,9 +982,8 @@ function tryLoadScores() {
   }
 }
 
-// ─────────────────────────────────────────────────────────
+
 //  Score setting & live calculation
-// ─────────────────────────────────────────────────────────
 function setScore(itemId, val) {
   document.getElementById(`score-${itemId}`).value = val;
 
@@ -1146,9 +1130,8 @@ function recalculate() {
   if (finalEl) finalEl.style.color = rcolor;
 }
 
-// ─────────────────────────────────────────────────────────
+
 //  Form submission
-// ─────────────────────────────────────────────────────────
 function showScoreError(count) {
   let errBox = document.getElementById('submit-score-error');
   if (!errBox) {
@@ -1196,7 +1179,7 @@ function submitEvaluation() {
     document.getElementById('f-new-role').value = role || 'Sales Assistant';
   }
 
-  // ── Validate: every score must be filled ────────────────
+  // Validate: every score must be filled 
   let missingCount = 0;
   document.querySelectorAll('[id^="score-"]').forEach(inp => {
     const row = inp.closest('tr');
@@ -1220,15 +1203,12 @@ function submitEvaluation() {
   document.getElementById('evaluation-form').submit();
 }
 
-// ─────────────────────────────────────────────────────────
-//  Live weights (mutable copies – PHP defaults as starting point)
-// ─────────────────────────────────────────────────────────
+
+//  Live weights (changeble copies – PHP defaults as starting point)
 let liveS1Weights = JSON.parse(JSON.stringify(s1Weights));   // deep copy
 let liveS2Groups  = JSON.parse(JSON.stringify(s2Groups));    // deep copy
 
-// ─────────────────────────────────────────────────────────
 //  Weight Modal
-// ─────────────────────────────────────────────────────────
 function openWeightModal() {
   // Populate inputs with current live weights
   document.querySelectorAll('.wm-input').forEach(inp => {
