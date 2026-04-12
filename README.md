@@ -132,6 +132,7 @@ You should see: "Database 'sakms_db' has been created."
 
 ### Step 2: Deploy Project Files
 
+
 **Option A: Copy Project Folder**
 1. **Navigate to your project folder:**
    ```
@@ -142,24 +143,64 @@ You should see: "Database 'sakms_db' has been created."
 4. **Verify in htdocs:**
    ```
    C:\xampp\htdocs\sales_assistant_KPI_monitoring_system\
+   ├── asset/
+   │   ├── avatars/
+   │   │   ├── adam.jpg
+   │   │   ├── aisyah.jpg
+   │   │   ├── alex.jpg
+   │   │   ├── ali.jpg
+   │   │   ├── daniel.jpg
+   │   │   ├── default.jpg
+   │   │   ├── emily.png
+   │   │   ├── farah.jpg
+   │   │   ├── john.jpg
+   │   │   ├── kamal.jpg
+   │   │   ├── kelvin.jpg
+   │   │   ├── lisa.jpg
+   │   │   ├── marcus.jpg
+   │   │   ├── sally.jpg
+   │   │   └── susan.jpeg
+   │   ├── badges/
+   │   │   ├── bronze_sales.png
+   │   │   ├── featured.png
+   │   │   ├── gold_sales.png
+   │   │   ├── handpicked.png
+   │   │   ├── sliver_sales.png
+   │   │   ├── verified.png
+   │   ├── icon/
+   │   │   └── icon.png
+   │   └── rankings/
+   │       ├── 1st.png
+   │       ├── 2nd.png
+   │       └── 3rd.png
+   ├── data/
+   │   └── sakms_db.sql
+   ├── includes/
+   │   ├── auth.php
+   │   ├── avatar.php
+   │   ├── config.php
+   │   ├── db_config.php
+   │   ├── export.php
+   │   ├── functions.php
+   │   ├── gemini.php
+   │   ├── kpi_calculator.php
+   ├── pages/
+   │   ├── analytics.php
+   │   ├── dashboard.php
+   │   ├── evaluation.php
+   │   ├── profiles.php
+   │   ├── report.php
+   │   ├── settings.php
+   ├── uploads/
+   │   └── avatars/
+   ├── .gitignore
+   ├── index.html
    ├── index.php
    ├── login.php
    ├── logout.php
    ├── script.js
    ├── styles.css
-   ├── includes/
-   │   ├── db_config.php
-   │   ├── auth.php
-   │   ├── functions.php
-   │   └── kpi_calculator.php
-   ├── pages/
-   │   ├── dashboard.php
-   │   ├── profiles.php
-   │   ├── analytics.php
-   │   ├── performance.php
-   │   └── settings.php
-   └── data/
-       └── sample_data.sql
+   └── README.md
    ```
 
 **Option B: Symbolic Link (Advanced)**
@@ -289,122 +330,6 @@ On Analytics Dashboard, you should see:
 
 ---
 
-## Session Management
-
-### Auto-Logout (30 minutes)
-
-- **Session timeout:** 30 minutes of inactivity
-- **Behavior:** If idle for 30+ minutes, will be logged out
-- **Result:** Redirected to login page
-
-### Manual Logout
-
-1. **Click the sidebar** at the bottom
-2. **Click "Logout" button** (red icon)
-3. **Expect:** Redirect to login page
-
----
-
-## Troubleshooting
-
-### Issue: "Connection refused" or "Could not connect to database"
-
-**Causes:**
-- MySQL service not running
-- Incorrect database credentials
-- Database not created
-
-**Solution:**
-1. **Check XAMPP Control Panel** - Ensure MySQL shows "Running"
-2. **Verify database exists:**
-   - Go to `http://localhost/phpmyadmin`
-   - Look for `sakms_db` in left sidebar
-3. **Verify db_config.php:**
-   - Check `includes/db_config.php`
-   - Ensure database name is `sakms_db`
-   - Ensure user is `root` with empty password
-
----
-
-### Issue: "Blank page" or "500 error"
-
-**Causes:**
-- PHP syntax error
-- Missing include files
-- SQL import incomplete
-
-**Solution:**
-1. **Check PHP error log:**
-   - Open: `C:\xampp\apache\logs\error.log`
-   - Look for error messages
-2. **Verify all files exist:**
-   ```
-   ✅ includes/db_config.php
-   ✅ includes/auth.php
-   ✅ includes/functions.php
-   ✅ includes/kpi_calculator.php
-   ✅ pages/dashboard.php
-   ✅ pages/profiles.php
-   ✅ pages/analytics.php
-   ✅ pages/performance.php
-   ✅ pages/settings.php
-   ```
-3. **Check database import:**
-   - In phpMyAdmin, verify `sakms_db` has 12 tables
-   - If missing, re-import `data/sakms_db.sql`
-
----
-
-### Issue: "Login always fails"
-
-**Cause:**
-- Incorrect credentials entered
-
-**Solution:**
-1. **Use demo credentials exactly:**
-   - Email: `supervisor@sakms.com`
-   - Password: `supervisor123`
-2. **Check browser console** for JavaScript errors
-3. **Verify database connection** (see above)
-
----
-
-### Issue: "Charts not displaying"
-
-**Cause:**
-- Chart.js library not loaded
-- Data not returned from database
-
-**Solution:**
-1. **Check browser console:**
-   - Press `F12` to open Developer Tools
-   - Look for JavaScript errors
-2. **Verify library is loaded:**
-   - In browser, check `index.php` source
-   - Look for `<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>`
-3. **Verify data query:**
-   - Check MySQL has data in `kpi_scores` table
-   - In phpMyAdmin, click `kpi_scores` > should show 588 records
-
----
-
-### Issue: "Sidebar menu not expanding"
-
-**Cause:**
-- CSS not loaded properly
-- Browser cache issue
-
-**Solution:**
-1. **Hard refresh page:**
-   - Press `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac)
-2. **Clear browser cache:**
-   - Open DevTools (`F12`)
-   - Right-click refresh button > "Empty cache and hard refresh"
-3. **Verify styles.css exists:**
-   - Check: `C:\xampp\htdocs\sales_assistant_KPI_monitoring_system\styles.css`
-
----
-
 ## Features Overview
 
 ### ✨ Three Innovative Features Implemented:
@@ -465,62 +390,6 @@ Reports:        http://localhost/sales_assistant_KPI_monitoring_system/?page=per
 Settings:       http://localhost/sales_assistant_KPI_monitoring_system/?page=settings
 phpMyAdmin:     http://localhost/phpmyadmin
 ```
-
-### Demo Credentials
-```
-Email:    supervisor@sakms.com
-Password: supervisor123
-```
-
-### Key Thresholds (configurable in Settings)
-```
-Top Performer:        KPI ≥ 4.5
-At-Risk:              KPI < 3.0
-Performance Decline:  -0.5 score change
-```
-
----
-
-## Next Steps (Phase 2)
-
-1. **Excel Data Import:**
-   - Implement Excel upload functionality in Settings
-   - Parse employee records from Excel
-   - Auto-populate database
-
-2. **Email Notifications:**
-   - Send risk alerts to supervisor email
-   - Weekly summary reports
-   - Monthly performance statements
-
-3. **Advanced Analytics:**
-   - Trend graphs (6-month, year-over-year)
-   - Department benchmarking
-   - Individual goal tracking
-
-4. **User Management:**
-   - Multiple supervisor accounts
-   - Sales assistant self-service portal
-   - Role-based access control
-
----
-
-## Support & Resources
-
-**Documentation Files:**
-- `README.md` - System overview
-- `XAMPP_SETUP_GUIDE.md` - This file
-- Database schema in `data/sample_data.sql`
-
-**Key Files:**
-- Backend: `includes/kpi_calculator.php` (KPI calculation logic)
-- Auth: `includes/auth.php` (session management)
-- Utils: `includes/functions.php` (data retrieval)
-
-**Recommended Tools:**
-- VS Code for code editing
-- phpMyAdmin for database management
-- Chrome DevTools for debugging
 
 ---
 
