@@ -37,7 +37,7 @@ function loginSupervisor($email, $password) {
     if ($email === SUPERVISOR_EMAIL && $password === SUPERVISOR_PASSWORD) {
         $_SESSION['supervisor_logged_in'] = true;
         $_SESSION['supervisor_email'] = $email;
-        $_SESSION['supervisor_name'] = 'Supervisor Account';
+        $_SESSION['supervisor_name'] = 'Emily Tan';
         $_SESSION['login_time'] = time();
         return true;
     }
