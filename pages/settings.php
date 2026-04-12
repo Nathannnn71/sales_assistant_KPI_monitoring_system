@@ -66,57 +66,125 @@
       
       <div style="margin-top: 12px;">
         <!-- Toggle Switches -->
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+        <div class="notif-row-setting" data-key="at_risk_alert" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
           <div>
             <p style="font-size: 12px; font-weight: 600; color: var(--text-primary);">At-Risk Alert Notifications</p>
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Notify when employees fall below threshold</p>
           </div>
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="checkbox" checked style="width: 0; height: 0; opacity: 0;">
-            <div style="width: 44px; height: 24px; background: #22c55e; border-radius: 12px; position: relative; transition: background 0.3s;">
-              <div style="width: 20px; height: 20px; background: white; border-radius: 10px; position: absolute; top: 2px; right: 2px; transition: all 0.3s;"></div>
-            </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="notif-at-risk" class="real-toggle">
+            <span class="custom-toggle">
+              <span class="custom-toggle-thumb"></span>
+            </span>
           </label>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+        <div class="notif-row-setting" data-key="decline_alert" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
           <div>
             <p style="font-size: 12px; font-weight: 600; color: var(--text-primary);">Performance Decline Alerts</p>
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Alert on significant score drops</p>
           </div>
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="checkbox" checked style="width: 0; height: 0; opacity: 0;">
-            <div style="width: 44px; height: 24px; background: #22c55e; border-radius: 12px; position: relative; transition: background 0.3s;">
-              <div style="width: 20px; height: 20px; background: white; border-radius: 10px; position: absolute; top: 2px; right: 2px; transition: all 0.3s;"></div>
-            </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="notif-decline" class="real-toggle">
+            <span class="custom-toggle">
+              <span class="custom-toggle-thumb"></span>
+            </span>
           </label>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+        <div class="notif-row-setting" data-key="monthly_report" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
           <div>
             <p style="font-size: 12px; font-weight: 600; color: var(--text-primary);">Monthly Report Summary</p>
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Receive monthly KPI analysis reports</p>
           </div>
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="checkbox" checked style="width: 0; height: 0; opacity: 0;">
-            <div style="width: 44px; height: 24px; background: #22c55e; border-radius: 12px; position: relative; transition: background 0.3s;">
-              <div style="width: 20px; height: 20px; background: white; border-radius: 10px; position: absolute; top: 2px; right: 2px; transition: all 0.3s;"></div>
-            </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="notif-monthly" class="real-toggle">
+            <span class="custom-toggle">
+              <span class="custom-toggle-thumb"></span>
+            </span>
           </label>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+        <div class="notif-row-setting" data-key="email" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
           <div>
             <p style="font-size: 12px; font-weight: 600; color: var(--text-primary);">Email Notifications</p>
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Send all notifications via email</p>
           </div>
-          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="checkbox" style="width: 0; height: 0; opacity: 0;">
-            <div style="width: 44px; height: 24px; background: #e5e7eb; border-radius: 12px; position: relative; transition: background 0.3s;">
-              <div style="width: 20px; height: 20px; background: white; border-radius: 10px; position: absolute; top: 2px; left: 2px; transition: all 0.3s;"></div>
-            </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="notif-email" class="real-toggle">
+            <span class="custom-toggle">
+              <span class="custom-toggle-thumb"></span>
+            </span>
           </label>
+        <style>
+        .switch-toggle {
+          display: inline-block;
+          width: 44px;
+          height: 24px;
+          background: #fff;
+          border-radius: 12px;
+          position: relative;
+          transition: background 0.3s, border 0.3s;
+          border: 2px solid #e5e7eb;
+          box-sizing: border-box;
+        }
+        .real-toggle {
+          position: absolute;
+          opacity: 0;
+          width: 44px;
+          height: 24px;
+          margin: 0;
+          cursor: pointer;
+          z-index: 2;
+        }
+        .custom-toggle {
+          display: block;
+          width: 44px;
+          height: 24px;
+          border-radius: 12px;
+          position: relative;
+          transition: background 0.3s, border 0.3s;
+          background: #fff;
+          border: none;
+        }
+        .custom-toggle-thumb {
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          width: 20px;
+          height: 20px;
+          background: #fff;
+          border-radius: 50%;
+          transition: all 0.3s;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .real-toggle:checked + .custom-toggle {
+          background: #22c55e;
+          border: 2px solid #22c55e;
+        }
+        .real-toggle:checked + .custom-toggle .custom-toggle-thumb {
+          left: 22px;
+        }
+        </style>
         </div>
+      </div>
+      <script>
+      // Notification Settings Toggle Logic (inline for settings.php only)
+      document.addEventListener('DOMContentLoaded', function() {
+        // Set default states (all ON except email)
+        document.getElementById('notif-at-risk').checked = true;
+        document.getElementById('notif-decline').checked = true;
+        document.getElementById('notif-monthly').checked = true;
+        document.getElementById('notif-email').checked = false;
+
+        // Save on toggle 
+        document.querySelectorAll('.notif-row-setting .real-toggle').forEach(cb => {
+          cb.addEventListener('change', function() {
+
+          });
+        });
+      });
+      </script>
       </div>
     </div>
 
