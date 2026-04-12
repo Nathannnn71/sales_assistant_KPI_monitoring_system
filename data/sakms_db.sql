@@ -141,7 +141,7 @@ CREATE TABLE `kpi_score` (
   `period_id` int(11) NOT NULL,
   `score` int(11) NOT NULL CHECK (`score` between 1 and 5),
   `date_recorded` date NOT NULL,
-  `evaluated_by` int(11) DEFAULT 1 COMMENT 'FK → supervisor_profile.id'
+  `evaluated_by` int(11) DEFAULT 1 /* 'FK → supervisor_profile.id*/
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -773,7 +773,7 @@ CREATE TABLE `performance_summary` (
   `final_score` decimal(5,4) NOT NULL,
   `grade_label` varchar(50) NOT NULL,
   `interpretation_id` int(11) DEFAULT NULL,
-  `config_id` int(11) DEFAULT NULL COMMENT 'FK → weight_config.config_id; NULL = default weights used'
+  `config_id` int(11) DEFAULT NULL /*FK → weight_config.config_id; NULL = default weights used*/
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -877,7 +877,7 @@ CREATE TABLE `supervisor_feedback` (
   `feedback_id` int(11) NOT NULL,
   `staff_id` int(11) NOT NULL,
   `period_id` int(11) NOT NULL,
-  `supervisor_id` int(11) NOT NULL DEFAULT 1 COMMENT 'FK → supervisor_profile.id',
+  `supervisor_id` int(11) NOT NULL DEFAULT 1 /* 'FK → supervisor_profile.id'*/,
   `supervisor_name` varchar(100) DEFAULT NULL,
   `supervisor_comments` text DEFAULT NULL,
   `training_recommendations` text DEFAULT NULL
@@ -946,9 +946,9 @@ INSERT INTO `supervisor_profile` (`id`, `name`, `email`, `password_hash`, `creat
 
 CREATE TABLE `weight_config` (
   `config_id` int(11) NOT NULL,
-  `supervisor_id` int(11) DEFAULT 1 COMMENT 'NULL = system default, FK → supervisor_profile.id',
-  `s1_weights_json` text NOT NULL COMMENT 'JSON object: {item_id: decimal_weight, ...}',
-  `s2_weights_json` text NOT NULL COMMENT 'JSON object: {group_name: decimal_weight, ...}',
+  `supervisor_id` int(11) DEFAULT 1 /* NULL = system default, FK → supervisor_profile.id*/,
+  `s1_weights_json` text NOT NULL  /*JSON object: {item_id: decimal_weight, ...}*/,
+  `s2_weights_json` text NOT NULL /* JSON object: {group_name: decimal_weight, ...}*/,
   `saved_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
