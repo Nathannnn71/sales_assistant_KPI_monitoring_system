@@ -87,7 +87,7 @@ You should see: "Database 'sakms_db' has been created."
 3. **Upload the SQL file:**
    - Click **"Choose File"**
    - Navigate to your project folder
-   - Select `data/sample_data.sql` (2,500+ lines)
+   - Select `data/sakms_db.sql`
    - Click **Open**
 4. **Verify settings:**
    - Charset: `utf8mb4`
@@ -96,23 +96,29 @@ You should see: "Database 'sakms_db' has been created."
 
 **Wait for confirmation:**
 ```
-✓ Import has been successfully finished, 1,517 queries executed.
+✓ Import has been successfully finished, all tables created and data inserted.
 ```
 
 ### Step 4: Verify Database Structure
 
 1. **In phpMyAdmin, click `sakms_db`** in the left sidebar
-2. **Expand to see 6 tables:**
-   - ✅ `employees` (13 records)
-   - ✅ `evaluation_periods` (4 records: 2022-2025)
-   - ✅ `kpi_master` (21 KPI definitions)
-   - ✅ `kpi_scores` (588 score records)
-   - ✅ `supervisor_comments` (13 comments)
-   - ✅ `rating_scale` (5 rating levels)
+2. **Expand to see 12 tables:**
+   - ✅ `at_risk_notifications`
+   - ✅ `evaluation_period`
+   - ✅ `kpi_group`
+   - ✅ `kpi_item`
+   - ✅ `kpi_score`
+   - ✅ `kpi_section`
+   - ✅ `performance_summary`
+   - ✅ `score_interpretation`
+   - ✅ `staff`
+   - ✅ `supervisor_feedback`
+   - ✅ `supervisor_profile`
+   - ✅ `weight_config`
 
 3. **Click each table** to view sample data:
-   - Click `employees` > Preview should show 13 employees
-   - Click `kpi_scores` > Should show realistic scores (1-5 range)
+   - Click `staff` > Preview should show employee records
+   - Click `kpi_score` > Should show realistic scores (1-5 range)
 
 ---
 
@@ -344,8 +350,8 @@ On Analytics Dashboard, you should see:
    ✅ pages/settings.php
    ```
 3. **Check database import:**
-   - In phpMyAdmin, verify `sakms_db` has 6 tables
-   - If missing, re-import `data/sample_data.sql`
+   - In phpMyAdmin, verify `sakms_db` has 12 tables
+   - If missing, re-import `data/sakms_db.sql`
 
 ---
 
@@ -423,32 +429,27 @@ On Analytics Dashboard, you should see:
 
 ---
 
-## Database Schema Overview
 
-**Table: `employees`** (13 records)
-- Fields: emp_id, emp_name, department, role, staff_id, hire_date
-- Sample: Adam Ramirez (Sales), Aisyah Taylor (Marketing), etc.
+## Database Table Reference
 
-**Table: `kpi_master`** (21 KPI definitions)
-- Fields: kpi_id, kpi_code, kpi_name, section, kpi_group, weight
-- Split: 3 Core Competencies (Section 1, 25%) + 18 KPI metrics (Section 2, 75%)
+The system uses **12 tables** in the `sakms_db` database:
 
-**Table: `kpi_scores`** (588 score records)
-- Fields: score_id, emp_id, period_id, kpi_id, score
-- Range: 1-5 scale
-- Covers: All 13 employees × 21 KPIs × periods
+| Table Name                | Description                                 |
+|--------------------------|---------------------------------------------|
+| at_risk_notifications    | Tracks at-risk employee notifications       |
+| evaluation_period        | Stores evaluation period data               |
+| kpi_group                | KPI group definitions                       |
+| kpi_item                 | Individual KPI items                        |
+| kpi_score                | Stores KPI scores for each staff            |
+| kpi_section              | KPI section definitions                     |
+| performance_summary      | Summary of performance evaluations          |
+| score_interpretation     | Interpretation of KPI scores                |
+| staff                    | Employee/staff master data                  |
+| supervisor_feedback      | Supervisor feedback/comments                |
+| supervisor_profile       | Supervisor profile information              |
+| weight_config            | KPI weighting configuration                 |
 
-**Table: `supervisor_comments`** (13 comments)
-- Fields: comment_id, emp_id, period_id, comments
-- Format: Free-text training recommendations
-
-**Table: `evaluation_periods`** (4 records)
-- Fields: period_id, period_year, period_name
-- Years: 2022, 2023, 2024, 2025
-
-**Table: `rating_scale`** (5 records)
-- Fields: rating_id, rating_value, rating_label, color_code
-- Labels: Very Poor, Poor, Satisfactory, Good, Excellent
+For further details, see the `sakms_db.sql` file in the `data/` folder for full schema and sample data.
 
 ---
 
