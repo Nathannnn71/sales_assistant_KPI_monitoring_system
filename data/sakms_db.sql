@@ -1,7 +1,31 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Apr 12, 2026 at 04:56 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `sakms_db`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `at_risk_notifications`
+--
 
 CREATE TABLE `at_risk_notifications` (
   `id` int(11) NOT NULL,
@@ -14,8 +38,11 @@ CREATE TABLE `at_risk_notifications` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
 
-
+--
+-- Table structure for table `evaluation_period`
+--
 
 CREATE TABLE `evaluation_period` (
   `period_id` int(11) NOT NULL,
@@ -25,6 +52,9 @@ CREATE TABLE `evaluation_period` (
   `end_date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `evaluation_period`
+--
 
 INSERT INTO `evaluation_period` (`period_id`, `period_label`, `year`, `start_date`, `end_date`) VALUES
 (1, 'Year 2022', 2022, '2022-01-01', '2022-12-31'),
@@ -32,8 +62,11 @@ INSERT INTO `evaluation_period` (`period_id`, `period_label`, `year`, `start_dat
 (3, 'Year 2024', 2024, '2024-01-01', '2024-12-31'),
 (4, 'Year 2025', 2025, '2025-01-01', '2025-12-31');
 
+-- --------------------------------------------------------
 
-
+--
+-- Table structure for table `kpi_group`
+--
 
 CREATE TABLE `kpi_group` (
   `kpi_group_id` int(11) NOT NULL,
@@ -41,6 +74,10 @@ CREATE TABLE `kpi_group` (
   `group_name` varchar(100) NOT NULL,
   `weight_percentage` decimal(5,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `kpi_group`
+--
 
 INSERT INTO `kpi_group` (`kpi_group_id`, `section_id`, `group_name`, `weight_percentage`) VALUES
 (1, 1, 'Competency', 25.00),
@@ -51,6 +88,12 @@ INSERT INTO `kpi_group` (`kpi_group_id`, `section_id`, `group_name`, `weight_per
 (6, 2, 'Inventory & Cost Control', 5.00),
 (7, 2, 'Store Operations Support', 15.00);
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `kpi_item`
+--
+
 CREATE TABLE `kpi_item` (
   `kpi_item_id` int(11) NOT NULL,
   `kpi_code` varchar(20) NOT NULL,
@@ -58,6 +101,9 @@ CREATE TABLE `kpi_item` (
   `description` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `kpi_item`
+--
 
 INSERT INTO `kpi_item` (`kpi_item_id`, `kpi_code`, `kpi_group_id`, `description`) VALUES
 (1, '1.1.1', 2, 'Accurate sales transaction processing'),
@@ -82,7 +128,11 @@ INSERT INTO `kpi_item` (`kpi_item_id`, `kpi_code`, `kpi_group_id`, `description`
 (20, 'S1.2', 1, 'Professional Conduct'),
 (21, 'S1.3', 1, 'Reliability & Accountability');
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `kpi_score`
+--
 
 CREATE TABLE `kpi_score` (
   `score_id` int(11) NOT NULL,
@@ -91,10 +141,12 @@ CREATE TABLE `kpi_score` (
   `period_id` int(11) NOT NULL,
   `score` int(11) NOT NULL CHECK (`score` between 1 and 5),
   `date_recorded` date NOT NULL,
-  `evaluated_by` int(11) DEFAULT 1 /* 'FK → supervisor_profile.id*/
+  `evaluated_by` int(11) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
+--
+-- Dumping data for table `kpi_score`
+--
 
 INSERT INTO `kpi_score` (`score_id`, `staff_id`, `kpi_item_id`, `period_id`, `score`, `date_recorded`, `evaluated_by`) VALUES
 (1, 1, 1, 3, 2, '2024-12-30', 1),
@@ -686,7 +738,11 @@ INSERT INTO `kpi_score` (`score_id`, `staff_id`, `kpi_item_id`, `period_id`, `sc
 (587, 2, 20, 1, 5, '2022-11-13', 1),
 (588, 2, 21, 1, 5, '2022-11-13', 1);
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `kpi_section`
+--
 
 CREATE TABLE `kpi_section` (
   `section_id` int(11) NOT NULL,
@@ -694,13 +750,19 @@ CREATE TABLE `kpi_section` (
   `weight_percentage` decimal(5,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
+--
+-- Dumping data for table `kpi_section`
+--
 
 INSERT INTO `kpi_section` (`section_id`, `section_name`, `weight_percentage`) VALUES
 (1, 'Core Competencies', 25.00),
 (2, 'KPI Achievement', 75.00);
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `performance_summary`
+--
 
 CREATE TABLE `performance_summary` (
   `summary_id` int(11) NOT NULL,
@@ -711,10 +773,12 @@ CREATE TABLE `performance_summary` (
   `final_score` decimal(5,4) NOT NULL,
   `grade_label` varchar(50) NOT NULL,
   `interpretation_id` int(11) DEFAULT NULL,
-  `config_id` int(11) DEFAULT NULL /*FK → weight_config.config_id; NULL = default weights used*/
+  `config_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
+--
+-- Dumping data for table `performance_summary`
+--
 
 INSERT INTO `performance_summary` (`summary_id`, `staff_id`, `period_id`, `section1_score`, `section2_score`, `final_score`, `grade_label`, `interpretation_id`, `config_id`) VALUES
 (1, 1, 1, 1.2500, 2.7500, 4.0000, 'Good', 2, NULL),
@@ -746,7 +810,11 @@ INSERT INTO `performance_summary` (`summary_id`, `staff_id`, `period_id`, `secti
 (27, 12, 4, 0.5000, 3.0250, 3.5250, 'Satisfactory', 3, NULL),
 (28, 13, 4, 0.5833, 2.9000, 3.4833, 'Satisfactory', 3, NULL);
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `score_interpretation`
+--
 
 CREATE TABLE `score_interpretation` (
   `interpretation_id` int(11) NOT NULL,
@@ -755,7 +823,9 @@ CREATE TABLE `score_interpretation` (
   `grade_label` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
+--
+-- Dumping data for table `score_interpretation`
+--
 
 INSERT INTO `score_interpretation` (`interpretation_id`, `min_score`, `max_score`, `grade_label`) VALUES
 (1, 5.00, 5.00, 'Excellent'),
@@ -764,7 +834,11 @@ INSERT INTO `score_interpretation` (`interpretation_id`, `min_score`, `max_score
 (4, 2.00, 2.99, 'Poor'),
 (5, 0.00, 1.99, 'Very Poor');
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `staff`
+--
 
 CREATE TABLE `staff` (
   `staff_id` int(11) NOT NULL,
@@ -774,7 +848,9 @@ CREATE TABLE `staff` (
   `status` varchar(20) DEFAULT 'Active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
+--
+-- Dumping data for table `staff`
+--
 
 INSERT INTO `staff` (`staff_id`, `staff_code`, `full_name`, `role`, `status`) VALUES
 (1, 'SA001', 'Ali', 'Sales Assistant', 'Active'),
@@ -791,19 +867,25 @@ INSERT INTO `staff` (`staff_id`, `staff_code`, `full_name`, `role`, `status`) VA
 (12, 'SA012', 'Susan', 'Senior Sales Associate', 'Active'),
 (13, 'SA013', 'Kamal', 'Sales Assistant', 'Active');
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `supervisor_feedback`
+--
 
 CREATE TABLE `supervisor_feedback` (
   `feedback_id` int(11) NOT NULL,
   `staff_id` int(11) NOT NULL,
   `period_id` int(11) NOT NULL,
-  `supervisor_id` int(11) NOT NULL DEFAULT 1 /* 'FK → supervisor_profile.id'*/,
+  `supervisor_id` int(11) NOT NULL DEFAULT 1,
   `supervisor_name` varchar(100) DEFAULT NULL,
   `supervisor_comments` text DEFAULT NULL,
   `training_recommendations` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
+--
+-- Dumping data for table `supervisor_feedback`
+--
 
 INSERT INTO `supervisor_feedback` (`feedback_id`, `staff_id`, `period_id`, `supervisor_id`, `supervisor_name`, `supervisor_comments`, `training_recommendations`) VALUES
 (1, 1, 1, 1, 'Emily Tan', 'Demonstrated reliable task execution and met most assigned targets. Shows consistency in daily responsibilities.', 'Time management and productivity enhancement workshop'),
@@ -835,35 +917,41 @@ INSERT INTO `supervisor_feedback` (`feedback_id`, `staff_id`, `period_id`, `supe
 (27, 12, 4, 1, 'Emily Tan', 'Delivered strong results with good organisational and coordination skills.', 'Leadership and strategic thinking training'),
 (28, 13, 4, 1, 'Emily Tan', 'Performed very well with strong ownership and accountability.', 'Advanced leadership and succession planning programme');
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `supervisor_profile`
+--
 
 CREATE TABLE `supervisor_profile` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `email` varchar(150) NOT NULL,
-  `password_hash` varchar(255) NOT NULL /* we going to Store bcrypt hash in production;but plaintext is allowed in phpmyadmin for only demo*/,
+  `password_hash` varchar(255) NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
+--
+-- Dumping data for table `supervisor_profile`
+--
 
 INSERT INTO `supervisor_profile` (`id`, `name`, `email`, `password_hash`, `created_at`) VALUES
 (1, 'Supervisor Account', 'supervisor@sakms.com', 'supervisor123', '2026-04-12 08:56:31');
 
+-- --------------------------------------------------------
 
+--
+-- Table structure for table `weight_config`
+--
 
 CREATE TABLE `weight_config` (
   `config_id` int(11) NOT NULL,
-  `supervisor_id` int(11) DEFAULT 1 /* NULL = system default, FK → supervisor_profile.id*/,
-  `s1_weights_json` text NOT NULL  /*JSON object: {item_id: decimal_weight, ...}*/,
-  `s2_weights_json` text NOT NULL /* JSON object: {group_name: decimal_weight, ...}*/,
+  `supervisor_id` int(11) DEFAULT 1,
+  `s1_weights_json` text NOT NULL,
+  `s2_weights_json` text NOT NULL,
   `saved_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
- /***************************(Reference)
-    MySQL :: MySQL 8.0 Reference Manual :: 11.2.5 Automatic Initialization and Updating for TIMESTAMP and DATETIME. (n.d.). 
-    Dev.mysql.com. https://dev.mysql.com/doc/refman/8.0/en/timestamp-initialization.html
-    ***************************/
 --
 -- Indexes for dumped tables
 --
@@ -1093,3 +1181,6 @@ ALTER TABLE `weight_config`
   ADD CONSTRAINT `fk_weightcfg_supervisor` FOREIGN KEY (`supervisor_id`) REFERENCES `supervisor_profile` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
 
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
