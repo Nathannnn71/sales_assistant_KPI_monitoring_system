@@ -7,113 +7,141 @@
 class KPICalculator {
     
     /**
-     * Calculate overall KPI score for an employee in a given period
-     * 
-     * @param mysqli $conn Database connection
-     * @param int $employee_id Employee ID
-     * @param int $period_id Evaluation period ID
+     * Calculate overall KPI score for an employee in a given period.
+     *
+     * @param mysqli $conn           Database connection
+     * @param int    $employee_id    Employee ID
+     * @param int    $period_id      Evaluation period ID
+     * @param array  $weight_overrides  Optional. Overrides DB weights with saved weight_config values.
+     *                               Format: [
+     *                                 's1' => ['Initiative' => 0.05, ...],   // name → decimal
+     *                                 's2' => ['Daily Sales Operations' => 0.15, ...]  // group_name → decimal
+     *                               ]
      * @return array ['section1' => float, 'section2' => float, 'overall' => float, 'rating' => string]
      */
-    public static function calculateKPI($conn, $employee_id, $period_id) {
-        
+    public static function calculateKPI($conn, $employee_id, $period_id, $weight_overrides = []) {
+
         // Get all KPI scores for this employee in this period
+        // JOIN chain: kpi_score → kpi_item → kpi_group → kpi_section
         $query = "
-            SELECT 
-                km.kpi_code,
-                km.section,
-                km.kpi_group,
-                km.section_weight,
+            SELECT
+                ki.kpi_code,
+                ki.description      AS item_desc,
+                ksec.section_name   AS section,
+                kg.group_name       AS kpi_group,
+                kg.weight_percentage AS group_weight,
                 ks.score
-            FROM kpi_scores ks
-            JOIN kpi_master km ON ks.kpi_code = km.kpi_code
-            JOIN employees e ON ks.employee_id = e.employee_id
-            JOIN evaluation_periods ep ON YEAR(ks.evaluation_date) = ep.year
-            WHERE ks.employee_id = ? AND ep.period_id = ?
-            ORDER BY km.section, km.kpi_group, km.kpi_code
+            FROM kpi_score ks
+            JOIN kpi_item    ki   ON ks.kpi_item_id   = ki.kpi_item_id
+            JOIN kpi_group   kg   ON ki.kpi_group_id  = kg.kpi_group_id
+            JOIN kpi_section ksec ON kg.section_id    = ksec.section_id
+            WHERE ks.staff_id = ? AND ks.period_id = ?
+            ORDER BY ksec.section_id, kg.kpi_group_id, ki.kpi_item_id
         ";
-        
+
         $stmt = $conn->prepare($query);
         $stmt->bind_param("ii", $employee_id, $period_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        
-        $section1_scores = [];
-        $section2_groups = [];
-        $kpi_weights = [];
-        
-        // Organize scores by section
+
+        $s1_overrides = $weight_overrides['s1'] ?? [];  // name → decimal weight
+        $s2_overrides = $weight_overrides['s2'] ?? [];  // group_name → decimal weight
+
+        // Collect scores grouped by section → group
+        $groups = [];
         while ($row = $result->fetch_assoc()) {
-            if ($row['section'] === 'Section 1') {
-                $section1_scores[$row['kpi_code']] = [
-                    'score' => $row['score'],
-                    'weight' => $row['section_weight']
-                ];
-                $kpi_weights[$row['kpi_code']] = $row['section_weight'];
+            $section      = $row['section'];   // 'Core Competencies' or 'KPI Achievement'
+            $group        = $row['kpi_group'];
+            $item_desc    = $row['item_desc'];
+            $group_weight = (float) $row['group_weight'];
+
+            // Use override weight if provided, otherwise fall back to DB value
+            if ($section === 'Core Competencies' && isset($s1_overrides[$item_desc])) {
+                // S1: each item has its own weight override (already a decimal)
+                $resolved_weight = (float)$s1_overrides[$item_desc];
+            } elseif ($section !== 'Core Competencies' && isset($s2_overrides[$group])) {
+                // S2: group-level weight override (already a decimal)
+                $resolved_weight = (float)$s2_overrides[$group];
             } else {
-                if (!isset($section2_groups[$row['kpi_group']])) {
-                    $section2_groups[$row['kpi_group']] = [];
-                }
-                $section2_groups[$row['kpi_group']][] = $row['score'];
-                $kpi_weights[$row['kpi_group']] = $row['section_weight'];
+                $resolved_weight = $group_weight / 100;
             }
+
+            if (!isset($groups[$section][$group])) {
+                $groups[$section][$group] = [
+                    'scores'          => [],
+                    'weight'          => $resolved_weight,
+                    'item_weights'    => [],   // S1 only: per-item weight by desc
+                    'is_s1_per_item'  => ($section === 'Core Competencies' && !empty($s1_overrides)),
+                ];
+            }
+            $groups[$section][$group]['scores'][]               = (int) $row['score'];
+            $groups[$section][$group]['item_weights'][$item_desc] = $resolved_weight;
         }
-        
+
         // ======================================
         // SECTION 1: Core Competencies (25%)
-        // Formula: Weighted Score = Score × Weight
+        // Formula: AVG(items in group) × group_weight (0.25)
         // ======================================
-        $section1_total = 0;
+        $section1_total     = 0;
         $section1_breakdown = [];
-        
-        foreach ($section1_scores as $kpi_code => $data) {
-            $weighted_score = $data['score'] * $data['weight'];
-            $section1_total += $weighted_score;
-            
-            $section1_breakdown[$kpi_code] = [
-                'score' => $data['score'],
-                'weight' => $data['weight'],
-                'weighted_score' => round($weighted_score, 2)
-            ];
-        }
-        
+
         // ======================================
         // SECTION 2: KPI Achievement (75%)
-        // Formula: AVG(Ratings in group) × KPI Weight
+        // Formula: SUM( AVG(items in group) × group_weight ) across all groups
         // ======================================
-        $section2_total = 0;
+        $section2_total     = 0;
         $section2_breakdown = [];
-        
-        foreach ($section2_groups as $kpi_group => $scores) {
-            // Average all ratings within the KPI group
-            $avg_score = array_sum($scores) / count($scores);
-            $weight = $kpi_weights[$kpi_group] ?? 0.15;
-            $weighted_score = $avg_score * $weight;
-            $section2_total += $weighted_score;
-            
-            $section2_breakdown[$kpi_group] = [
-                'avg_score' => round($avg_score, 2),
-                'weight' => $weight,
-                'weighted_score' => round($weighted_score, 2)
-            ];
+
+        foreach ($groups as $section => $section_groups) {
+            foreach ($section_groups as $group_name => $group_data) {
+
+                if ($group_data['is_s1_per_item'] && !empty($group_data['item_weights'])) {
+                    // S1 with per-item overrides: sum each item's (score × item_weight)
+                    $weighted = 0;
+                    $scores   = $group_data['scores'];
+                    $iw       = array_values($group_data['item_weights']);
+                    foreach ($scores as $i => $sc) {
+                        $weighted += $sc * ($iw[$i] ?? 0);
+                    }
+                    $avg = count($scores) > 0 ? array_sum($scores) / count($scores) : 0;
+                } else {
+                    // Standard: AVG(scores) × group_weight
+                    $avg      = count($group_data['scores']) > 0
+                                    ? array_sum($group_data['scores']) / count($group_data['scores'])
+                                    : 0;
+                    $weighted = $avg * $group_data['weight'];
+                }
+
+                $breakdown_entry = [
+                    'avg_score'     => round($avg, 2),
+                    'weight'        => $group_data['weight'],
+                    'weighted_score'=> round($weighted, 2)
+                ];
+
+                if ($section === 'Core Competencies') {
+                    $section1_total                += $weighted;
+                    $section1_breakdown[$group_name] = $breakdown_entry;
+                } else {
+                    $section2_total                += $weighted;
+                    $section2_breakdown[$group_name] = $breakdown_entry;
+                }
+            }
         }
-        
+
         // ======================================
         // FINAL SCORE (Section 1 + Section 2)
         // ======================================
         $final_score = round($section1_total + $section2_total, 2);
-        
-        // Cap between 1-5
         $final_score = max(1, min(5, $final_score));
-        
-        // Get rating label
+
         $rating = self::getRatingLabel($final_score);
-        
+
         return [
-            'section1' => round($section1_total, 2),
-            'section2' => round($section2_total, 2),
-            'overall' => $final_score,
-            'rating' => $rating,
-            'section1_breakdown' => $section1_scores,
+            'section1'           => round($section1_total, 2),
+            'section2'           => round($section2_total, 2),
+            'overall'            => $final_score,
+            'rating'             => $rating,
+            'section1_breakdown' => $section1_breakdown,
             'section2_breakdown' => $section2_breakdown
         ];
     }
@@ -139,24 +167,28 @@ class KPICalculator {
     }
     
     /**
-     * Get color coding for performance visualization
+     * Get color coding for performance visualization (based on rating, not raw score)
      */
     public static function getPerformanceColor($score) {
-        if ($score >= 4.5) return '#22c55e';  // Green - Excellent
-        if ($score >= 3.5) return '#3b82f6';  // Blue - Good
-        if ($score >= 2.5) return '#f59e0b';  // Amber - Satisfactory
-        if ($score >= 1.5) return '#ef4444';  // Red - Poor
-        return '#7f1d1d';                      // Dark Red - Very Poor
+        $rating = floor(max(1, min(5, $score)));
+        switch ($rating) {
+            case 5: return '#22c55e';  // Green - Excellent
+            case 4: return '#3b82f6';  // Blue - Good
+            case 3: return '#f59e0b';  // Amber - Satisfactory
+            case 2: return '#ef4444';  // Red - Poor
+            case 1:
+            default: return '#7f1d1d'; // Dark Red - Very Poor
+        }
     }
     
     /**
      * Get CSS class for performance badge
      */
     public static function getPerformanceClass($score) {
-        if ($score >= 4.5) return 'badge-excellent';
-        if ($score >= 3.5) return 'badge-good';
-        if ($score >= 2.5) return 'badge-satisfactory';
-        if ($score >= 1.5) return 'badge-poor';
+        if ($score == 5) return 'badge-excellent';
+        if ($score >= 4) return 'badge-good';
+        if ($score >= 3) return 'badge-satisfactory';
+        if ($score >= 2) return 'badge-poor';
         return 'badge-very-poor';
     }
     
@@ -164,10 +196,10 @@ class KPICalculator {
      * Classify employee based on KPI score
      */
     public static function classifyPerformance($score) {
-        if ($score >= 4.5) return 'Top Performer';
-        if ($score >= 3.5) return 'Good Performer';
-        if ($score >= 2.5) return 'Average Performer';
-        if ($score >= 1.5) return 'At-Risk';
+        if ($score == 5) return 'Top Performer';
+        if ($score >= 4) return 'Good Performer';
+        if ($score >= 3) return 'Average Performer';
+        if ($score >= 2) return 'At-Risk';
         return 'Critical Risk';
     }
     
@@ -188,10 +220,10 @@ class KPICalculator {
      */
     public static function getKPITrend($conn, $employee_id, $start_year = 2022, $end_year = 2025) {
         $query = "
-            SELECT 
+            SELECT
                 ep.year,
                 ep.period_id
-            FROM evaluation_periods ep
+            FROM evaluation_period ep
             WHERE ep.year BETWEEN ? AND ?
             ORDER BY ep.year ASC
         ";
