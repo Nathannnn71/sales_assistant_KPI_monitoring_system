@@ -179,14 +179,15 @@ function prfScoreColor(float $s): string {
 .prf-back:hover { color:var(--accent); border-color:rgba(59,130,246,.3); background:rgba(59,130,246,.06); }
 
 /* ── Hero card ──────────────────────── */
-.prf-hero { background:linear-gradient(135deg,#0f1a2e 0%,#162035 50%,#1a2233 100%); border:1px solid var(--border); border-radius:16px; padding:26px 30px; position:relative; overflow:hidden; animation:prf-fadeInUp .4s ease both; }
+.prf-hero { background:linear-gradient(135deg,#0f1a2e 0%,#162035 50%,#1a2233 100%); border:1px solid var(--border); border-radius:16px; padding:26px 30px; position:relative; overflow:visible; animation:prf-fadeInUp .4s ease both;}
 .prf-hero::before { content:''; position:absolute; top:-60px; right:-60px; width:280px; height:280px; background:radial-gradient(circle,rgba(59,130,246,.07) 0%,transparent 70%); border-radius:50%; pointer-events:none; }
 .prf-hero-inner { display:grid; grid-template-columns:auto 1fr auto; gap:20px; align-items:center; position:relative; z-index:2; }
 @media(max-width:900px){ .prf-hero-inner{ grid-template-columns:auto 1fr; } .prf-hero-right{ display:none; } }
 
 .prf-hero-avatar { width:76px; height:76px; border-radius:50%; object-fit:cover; border:3px solid rgba(59,130,246,.35); box-shadow:0 0 0 6px rgba(59,130,246,.08); animation:prf-avatarIn .5s ease both; background:var(--bg-input); flex-shrink:0; }
-.prf-avatar-upload-btn { position:absolute; bottom:-5px; right:-5px; width:32px; height:32px; border-radius:50%; background:var(--accent); border:2px solid var(--bg-card); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; flex-shrink:0; box-shadow:0 2px 8px rgba(59,130,246,.3); }
+.prf-avatar-upload-btn { position:absolute; bottom:-2px; right:-2px; width:28px; height:28px; border-radius:50%; background:#3b82f6; border:2px solid #0f1a2e; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; box-shadow:0 2px 8px rgba(59,130,246,.5); z-index:10; overflow:visible; }
 .prf-avatar-upload-btn:hover { background:#2563eb; transform:scale(1.1); box-shadow:0 4px 12px rgba(59,130,246,.5); }
+
 #prf-avatar-input { display:none; }
 .prf-hero-name { font-family:'Sora',sans-serif; font-size:20px; font-weight:700; color:var(--text-primary); letter-spacing:-.3px; }
 .prf-hero-sub  { font-size:12px; color:var(--text-secondary); margin-top:4px; }
@@ -459,14 +460,21 @@ if ($employee_id):
   <div class="prf-hero">
     <div class="prf-hero-inner">
       <div style="display:flex;align-items:center;gap:16px;">
-        <div style="position:relative;">
-          <img src="<?= $avatar ?>" alt="<?= safe($profile['name']) ?>" id="prf-avatar-preview" class="prf-hero-avatar"
-               onerror="this.src='https://ui-avatars.com/api/?name=<?= urlencode($profile['name']) ?>&background=1a2540&color=60a5fa&size=76'">
-          <button id="prf-avatar-btn" class="prf-avatar-upload-btn" type="button" title="Update Profile Photo">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          </button>
-        </div>
-        <input type="file" id="prf-avatar-input" accept="image/jpeg,image/png,image/gif,image/webp">
+        <div style="position:relative;display:inline-block;">
+  <img src="<?= $avatar ?>" alt="<?= safe($profile['name']) ?>" id="prf-avatar-preview" class="prf-hero-avatar"
+       onerror="this.src='https://ui-avatars.com/api/?name=<?= urlencode($profile['name']) ?>&background=1a2540&color=60a5fa&size=76'">
+  <!-- Camera overlay on hover -->
+  <div id="prf-avatar-btn" title="Update Profile Photo"
+       style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;opacity:0;transition:opacity .2s;border:3px solid rgba(59,130,246,.35);"
+       onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+    <span style="font-size:9px;color:#fff;font-weight:700;letter-spacing:.5px;">UPDATE</span>
+  </div>
+</div>
+<input type="file" id="prf-avatar-input" accept="image/jpeg,image/png,image/gif,image/webp">
         <div>
           <div class="prf-hero-name"><?= safe($profile['name']) ?></div>
           <div class="prf-hero-sub"><?= safe($profile['role']) ?> &bull; <?= safe($profile['department']) ?></div>
